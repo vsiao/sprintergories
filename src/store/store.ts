@@ -2,12 +2,18 @@ import { configureStore } from "@reduxjs/toolkit";
 import { getAuth, onAuthStateChanged, signInAnonymously } from "firebase/auth";
 import "firebase/database";
 import { initializeApp } from "firebase/app";
-import { firebaseConfig } from "../config";
 import { authSlice } from "./authSlice";
 import { gameSlice } from "./gameSlice";
 import { roomSlice } from "./roomSlice";
 
-initializeApp(firebaseConfig);
+initializeApp({
+    apiKey: "AIzaSyCaAPFxV10RY8KsB0OKi8jmiU9nks8VFeE",
+    authDomain: "sprintergories.firebaseapp.com",
+    projectId: "sprintergories",
+    storageBucket: "sprintergories.appspot.com",
+    messagingSenderId: "502495083860",
+    appId: "1:502495083860:web:f1dbb95aa87c4d95b05cc1"
+});
 
 const auth = getAuth();
 onAuthStateChanged(auth, user => {
