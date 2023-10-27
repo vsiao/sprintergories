@@ -4,15 +4,22 @@ import { Provider } from 'react-redux';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { store } from "./store/store";
 import App from './App';
+import ErrorPage from './ErrorPage';
+import GameRoom from './GameRoom';
 import reportWebVitals from './reportWebVitals';
 import './index.css';
-import ErrorPage from './ErrorPage';
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     errorElement: <ErrorPage />,
+    children: [
+      {
+        path: "/rooms/:roomId",
+        element: <GameRoom />,
+      }
+    ]
   },
 ]);
 
