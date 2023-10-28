@@ -1,7 +1,7 @@
 {
   "rules": {
     "gameLogs": {
-    	".read": true,
+      ".read": true,
       "$gameId": {
         "$logEntry": {
           ".indexOn": "ts",
@@ -17,16 +17,16 @@
     },
     "rooms": {
       ".read": true,
-      "$roomId": {      
+      "$roomId": {
         ".write": "auth !== null && !data.exists()"
       }
     },
     "roomUsers": {
       ".read": true,
-      "$roomId": { 
+      "$roomId": {
         "$uid": {
           ".write": "auth.uid === $uid"
-        }    
+        }
       }
     }
   }
