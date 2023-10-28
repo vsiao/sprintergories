@@ -25,22 +25,23 @@ export default function GameRoom() {
   }
 
   const roomUser = users[userId];
-  if (!roomUser.name) {
-    return <GameRoomNameEntry roomId={roomId} userId={userId} />;
-  }
   return (
     <div className="GameRoom">
       <div className="GameRoom-main">
-        <h2>Game Options</h2>
+        {roomUser.name ? (
+          <h2 className="GameRoom-mainHeader">Game Options</h2>
+        ) : (
+          <GameRoomNameEntry roomId={roomId} userId={userId} />
+        )}
       </div>
       <div className="GameRoom-panel">
-        <h3>Players</h3>
+        <h3 className="GameRoom-playersHeader">Players</h3>
         <ul className="GameRoom-playerList">
           {Object.values(users)
             .filter((u) => u.status === "connected")
             .map((u, i) => (
               <li key={u.id} className="GameRoom-player">
-                {u.name ?? "..."}
+                {u.name ?? "connecting…"}
                 {i === 0 && <span className="GameRoom-hostLabel">host</span>}
               </li>
             ))}
@@ -65,15 +66,24 @@ function GameRoomNameEntry({
   };
 
   return (
-    <form className="GameRoomNameEntry" onSubmit={submit}>
-      <input
-        type="text"
-        value={name}
-        placeholder="Username"
-        onChange={(e) => setName(e.target.value)}
-      />
-      <input type="submit" value="Enter" />
-    </form>
+    <>
+      <h2 className="GameRoom-mainHeader">Enter Room</h2>
+      <form className="GameRoomNameEntry" onSubmit={submit}>
+        <input
+          autoFocus={true}
+          className="GameRoomNameEntry-input"
+          type="text"
+          value={name}
+          placeholder="Username"
+          onChange={(e) => setName(e.target.value)}
+        />
+        <input
+          className="GameRoomNameEntry-submit"
+          type="submit"
+          value="Enter"
+        />
+      </form>
+    </>
   );
 }
 
