@@ -1,18 +1,23 @@
 .App {
-  text-align: center;
+  background-color: #202040;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  font-size: 20px;
+  height: 100vh;
 }
 
 .App-header {
   align-items: center;
-  background-color: #282c34;
-  color: white;
   display: flex;
   flex-shrink: 0;
-  font-size: 18px;
-  height: 48px;
-  padding: 0 16px;
+  font-size: 30px;
+  height: 60px;
+  padding: 0 40px;
 }
 
-.App-link {
-  color: #61dafb;
+.App-homeLink {
+  color: #FFBD69;
+  font-weight: 600;
+  text-decoration: none;
 }

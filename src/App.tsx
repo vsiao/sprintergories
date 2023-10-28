@@ -1,19 +1,14 @@
 import { Outlet } from 'react-router-dom';
-import { useAppSelector } from './store/hooks';
 import './App.css';
 
-function App() {
-  const auth = useAppSelector(state => state.auth);
+export default function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <p>
-          {auth.state === "connected" ? `userId: ${auth.userId}` : <>&nbsp;</>}
-        </p>
+        <a className="App-homeLink" href="/">Sprintergories</a>
       </header>
       <Outlet />
     </div>
   );
 }
-
-export default App;
+;

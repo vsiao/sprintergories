@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import type { RootState } from "./store";
 
 type AuthState =
     | { state: "loading"; }
@@ -13,4 +14,7 @@ export const authSlice = createSlice({
         },
     },
 });
+
+export const selectUserId = (state: RootState) =>
+    state.auth.state === "connected" ? state.auth.userId : null;
 

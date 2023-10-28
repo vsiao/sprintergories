@@ -1,0 +1,37 @@
+.GameRoom {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 1px;
+}
+
+.GameRoom-main {
+    flex: 1 1 auto;
+}
+
+.GameRoom-panel {
+    background: #543864;
+    border-radius: 8px;
+    flex: 0 0 auto;
+    margin: 0 40px 40px;
+    max-width: 520px;
+    min-width: 200px;
+    padding: 0 1em;
+    width: 35vw;
+}
+
+.GameRoom-playerList {
+    list-style: none;
+    padding: 0;
+}
+
+.GameRoom-player {
+    align-items: center;
+    display: flex;
+    height: 40px;
+}
+
+.GameRoom-hostLabel {
+    color: #FF6363;
+    font-weight: 600;
+    margin-left: 12px;
+}
