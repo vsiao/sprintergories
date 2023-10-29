@@ -60,9 +60,6 @@
   flex: 1 1 auto;
   margin-right: 20px;
 }
-.GameRoomNameEntry-input::placeholder {
-  color: #543864;
-}
 
 .GameOptionsForm-field {
   align-items: center;

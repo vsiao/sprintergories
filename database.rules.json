@@ -11,14 +11,19 @@
     },
     "gameStates": {
       ".read": true,
-      "$gameid": {
-        ".write": "!data.exists()"
+      "$roomId": {
+        "$gameId": {
+          ".write": "!data.exists()"
+        }
       }
     },
     "rooms": {
       ".read": true,
       "$roomId": {
         ".write": "auth !== null && !data.exists()",
+        "currentGameId": {
+          ".write": "auth !== null"
+        },
         "options": {
           ".write": "auth !== null"
         }

@@ -78,3 +78,6 @@ input[type=text] {
 input[type=text]:focus {
   outline: none;
 }
+input[type=text]::placeholder {
+  color: #543864;
+}

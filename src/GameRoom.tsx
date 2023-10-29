@@ -1,6 +1,7 @@
 import {
   onDisconnect,
   onValue,
+  push,
   ref,
   runTransaction,
   serverTimestamp,
@@ -13,6 +14,8 @@ import { useAppSelector } from "./store/hooks";
 import { selectUserId } from "./store/authSlice";
 import { db } from "./store/store";
 import "./GameRoom.css";
+import { DbRoomOptions, DbRoom, DbRoomUser } from "./firebase/schema/DbRoom";
+import { defaultCategories } from "./game/defaultCategories";
 
 export default function GameRoom() {
   const { roomId } = useParams() as { roomId: string };
@@ -29,15 +32,20 @@ export default function GameRoom() {
     .filter((u) => u.status === "connected")
     .sort((u1, u2) => u1.connectedAt - u2.connectedAt);
   const isHost = sortedUsers[0] === roomUser;
+
   return (
     <div className="GameRoom">
       <div className="GameRoom-main">
         {roomUser.name ? (
-          <GameOptionsForm
-            roomId={roomId}
-            options={room.options}
-            disabled={!isHost}
-          />
+          room.currentGameId ? (
+            <>{room.currentGameId}</>
+          ) : (
+            <GameOptionsForm
+              roomId={roomId}
+              options={room.options}
+              disabled={!isHost}
+            />
+          )
         ) : (
           <GameRoomNameEntry roomId={roomId} userId={userId} />
         )}
@@ -57,26 +65,23 @@ export default function GameRoom() {
   );
 }
 
-type GameOptions = Record<
-  "timeLimit" | "numCategories" | "letterOverride",
-  string
->;
-
 function GameOptionsForm({
   roomId,
   options,
   disabled,
 }: {
   roomId: string;
-  options: GameOptions;
+  options: DbRoomOptions;
   disabled: boolean;
 }) {
-  const useFormField = <T extends keyof GameOptions>({
+  const useFormField = <T extends keyof DbRoomOptions>({
     label,
     name,
+    placeholder,
   }: {
     label: string;
     name: T;
+    placeholder?: string;
   }) => {
     const [value, setValue] = useState(options[name] ?? "");
     const field = (
@@ -87,6 +92,7 @@ function GameOptionsForm({
           disabled={disabled}
           type="text"
           value={disabled ? options[name] : value}
+          placeholder={placeholder}
           onChange={(e) => {
             setValue(e.target.value);
             set(ref(db, `rooms/${roomId}/options/${name}`), e.target.value);
@@ -107,12 +113,36 @@ function GameOptionsForm({
   const letterField = useFormField({
     label: "Letter override",
     name: "letterOverride",
+    placeholder: "None (random)",
   });
+
+  const startGame: FormEventHandler = (event) => {
+    event.preventDefault();
+
+    const categories = getRandom(
+      defaultCategories.split("\n"),
+      parseInt(options.numCategories, 10),
+    );
+
+    const gameId = push(ref(db, `gameStates/${roomId}`)).key!;
+    set(ref(db, `gameStates/${roomId}/${gameId}`), {
+      roomId,
+      startedAt: serverTimestamp(),
+      options: {
+        timeLimit: parseInt(options.timeLimit, 10),
+        letter:
+          options.letterOverride.substring(0, 1).toUpperCase() ??
+          "ABCDEFGHIJKLMNOPRSTW".charAt(Math.floor(Math.random() * 20)),
+      },
+      categories,
+    });
+    set(ref(db, `rooms/${roomId}/currentGameId`), gameId);
+  };
 
   return (
     <>
       <h2 className="GameRoom-mainHeader">Game Options</h2>
-      <form className="GameOptionsForm">
+      <form className="GameOptionsForm" onSubmit={startGame}>
         {timeField}
         {numCategoriesField}
         {letterField}
@@ -126,6 +156,21 @@ function GameOptionsForm({
       </form>
     </>
   );
+}
+
+/** https://stackoverflow.com/a/19270021 */
+function getRandom<T>(arr: T[], n: number) {
+  const result = new Array(n);
+  let len = arr.length;
+  const taken = new Array(len);
+  if (n > len)
+    throw new RangeError("getRandom: more elements taken than available");
+  while (n--) {
+    const x = Math.floor(Math.random() * len);
+    result[n] = arr[x in taken ? taken[x] : x];
+    taken[x] = --len in taken ? taken[len] : len;
+  }
+  return result;
 }
 
 function GameRoomNameEntry({
@@ -158,20 +203,6 @@ function GameRoomNameEntry({
       </form>
     </>
   );
-}
-
-interface DbRoomUser {
-  id: string;
-  name: string;
-  status: "connected" | "disconnected";
-  connectedAt: number;
-}
-
-interface DbRoom {
-  id: string;
-  createdAt: number;
-  status: "lobby";
-  options: GameOptions;
 }
 
 const useDbRoom = (roomId: string) => {
