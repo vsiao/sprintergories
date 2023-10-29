@@ -66,3 +66,15 @@ code {
 h1, h2, h3, h4 {
   font-weight: 600;
 }
+
+input[type=text] {
+  background: none;
+  border: none;
+  border-bottom: 2px solid #ff6363;
+  color: white;
+  font-size: 1em;
+  padding: 8px 0;
+}
+input[type=text]:focus {
+  outline: none;
+}

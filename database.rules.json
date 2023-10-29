@@ -18,7 +18,10 @@
     "rooms": {
       ".read": true,
       "$roomId": {
-        ".write": "auth !== null && !data.exists()"
+        ".write": "auth !== null && !data.exists()",
+        "options": {
+          ".write": "auth !== null"
+        }
       }
     },
     "roomUsers": {

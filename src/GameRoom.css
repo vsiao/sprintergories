@@ -12,7 +12,7 @@
 .GameRoom-mainHeader {
   font-size: 28px;
   margin-top: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 32px;
 }
 
 .GameRoom-panel {
@@ -57,28 +57,41 @@
 }
 
 .GameRoomNameEntry-input {
-  background: none;
-  border: none;
-  border-bottom: 2px solid #ff6363;
-  color: white;
   flex: 1 1 auto;
-  font-size: 1em;
-  padding: 8px 0;
-}
-.GameRoomNameEntry-input:focus {
-  outline: none;
+  margin-right: 20px;
 }
 .GameRoomNameEntry-input::placeholder {
   color: #543864;
 }
 
-.GameRoomNameEntry-submit {
+.GameOptionsForm-field {
+  align-items: center;
+  display: flex;
+  margin: 20px 0 8px;
+}
+
+.GameOptionsForm-label {
+  width: 260px;
+}
+
+.GameOptionsForm-input {
+  flex: 1 1 auto;
+}
+.GameOptionsForm-input[disabled] {
+  border-bottom-color: #543864;
+}
+
+.GameOptionsForm-submit {
+  margin-top: 16px;
+}
+
+.GameRoom-submit {
   background: #ff6363;
   border: 0;
   border-radius: 8px;
-  color: white;
+  color: black;
   cursor: pointer;
   font-size: 1em;
-  margin-left: 20px;
+  height: 50px;
   padding: 0 16px;
 }

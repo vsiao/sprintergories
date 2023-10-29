@@ -25,11 +25,19 @@ export default function GameRoom() {
   }
 
   const roomUser = users[userId];
+  const sortedUsers = Object.values(users)
+    .filter((u) => u.status === "connected")
+    .sort((u1, u2) => u1.connectedAt - u2.connectedAt);
+  const isHost = sortedUsers[0] === roomUser;
   return (
     <div className="GameRoom">
       <div className="GameRoom-main">
         {roomUser.name ? (
-          <h2 className="GameRoom-mainHeader">Game Options</h2>
+          <GameOptionsForm
+            roomId={roomId}
+            options={room.options}
+            disabled={!isHost}
+          />
         ) : (
           <GameRoomNameEntry roomId={roomId} userId={userId} />
         )}
@@ -37,17 +45,86 @@ export default function GameRoom() {
       <div className="GameRoom-panel">
         <h3 className="GameRoom-playersHeader">Players</h3>
         <ul className="GameRoom-playerList">
-          {Object.values(users)
-            .filter((u) => u.status === "connected")
-            .map((u, i) => (
-              <li key={u.id} className="GameRoom-player">
-                {u.name ?? "connecting…"}
-                {i === 0 && <span className="GameRoom-hostLabel">host</span>}
-              </li>
-            ))}
+          {sortedUsers.map((u, i) => (
+            <li key={u.id} className="GameRoom-player">
+              {u.name ?? "connecting…"}
+              {i === 0 && <span className="GameRoom-hostLabel">host</span>}
+            </li>
+          ))}
         </ul>
       </div>
     </div>
+  );
+}
+
+type GameOptions = Record<
+  "timeLimit" | "numCategories" | "letterOverride",
+  string
+>;
+
+function GameOptionsForm({
+  roomId,
+  options,
+  disabled,
+}: {
+  roomId: string;
+  options: GameOptions;
+  disabled: boolean;
+}) {
+  const useFormField = <T extends keyof GameOptions>({
+    label,
+    name,
+  }: {
+    label: string;
+    name: T;
+  }) => {
+    const [value, setValue] = useState(options[name] ?? "");
+    const field = (
+      <div className="GameOptionsForm-field">
+        <label className="GameOptionsForm-label">{label}</label>
+        <input
+          className="GameOptionsForm-input"
+          disabled={disabled}
+          type="text"
+          value={disabled ? options[name] : value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            set(ref(db, `rooms/${roomId}/options/${name}`), e.target.value);
+          }}
+        />
+      </div>
+    );
+    return field;
+  };
+  const timeField = useFormField({
+    label: "Time limit (seconds)",
+    name: "timeLimit",
+  });
+  const numCategoriesField = useFormField({
+    label: "Number of categories",
+    name: "numCategories",
+  });
+  const letterField = useFormField({
+    label: "Letter override",
+    name: "letterOverride",
+  });
+
+  return (
+    <>
+      <h2 className="GameRoom-mainHeader">Game Options</h2>
+      <form className="GameOptionsForm">
+        {timeField}
+        {numCategoriesField}
+        {letterField}
+        {!disabled && (
+          <input
+            className="GameOptionsForm-submit GameRoom-submit"
+            type="submit"
+            value="Start Game"
+          />
+        )}
+      </form>
+    </>
   );
 }
 
@@ -77,11 +154,7 @@ function GameRoomNameEntry({
           placeholder="Username"
           onChange={(e) => setName(e.target.value)}
         />
-        <input
-          className="GameRoomNameEntry-submit"
-          type="submit"
-          value="Enter"
-        />
+        <input className="GameRoom-submit" type="submit" value="Enter" />
       </form>
     </>
   );
@@ -98,6 +171,7 @@ interface DbRoom {
   id: string;
   createdAt: number;
   status: "lobby";
+  options: GameOptions;
 }
 
 const useDbRoom = (roomId: string) => {
@@ -126,6 +200,11 @@ const useDbRoom = (roomId: string) => {
           id: roomId,
           createdAt: serverTimestamp(),
           status: "lobby",
+          options: {
+            timeLimit: 30,
+            numCategories: 3,
+            letterOverride: "A",
+          },
         };
       }
     });
