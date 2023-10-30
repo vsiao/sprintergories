@@ -13,9 +13,10 @@ import { useParams } from "react-router-dom";
 import { useAppSelector } from "./store/hooks";
 import { selectUserId } from "./store/authSlice";
 import { db } from "./store/store";
-import "./GameRoom.css";
 import { DbRoomOptions, DbRoom, DbRoomUser } from "./firebase/schema/DbRoom";
 import { defaultCategories } from "./game/defaultCategories";
+import Sprintegories from "./game/Sprintegories";
+import "./GameRoom.css";
 
 export default function GameRoom() {
   const { roomId } = useParams() as { roomId: string };
@@ -38,7 +39,12 @@ export default function GameRoom() {
       <div className="GameRoom-main">
         {roomUser.name ? (
           room.currentGameId ? (
-            <>{room.currentGameId}</>
+            <Sprintegories
+              roomId={roomId}
+              gameId={room.currentGameId}
+              userId={userId}
+              isHost={isHost}
+            />
           ) : (
             <GameOptionsForm
               roomId={roomId}
@@ -86,8 +92,11 @@ function GameOptionsForm({
     const [value, setValue] = useState(options[name] ?? "");
     const field = (
       <div className="GameOptionsForm-field">
-        <label className="GameOptionsForm-label">{label}</label>
+        <label className="GameOptionsForm-label" htmlFor={label}>
+          {label}
+        </label>
         <input
+          id={label}
           className="GameOptionsForm-input"
           disabled={disabled}
           type="text"
@@ -95,7 +104,10 @@ function GameOptionsForm({
           placeholder={placeholder}
           onChange={(e) => {
             setValue(e.target.value);
-            set(ref(db, `rooms/${roomId}/options/${name}`), e.target.value);
+            set(
+              ref(db, `rooms/${roomId}/state/options/${name}`),
+              e.target.value,
+            );
           }}
         />
       </div>
@@ -121,22 +133,23 @@ function GameOptionsForm({
 
     const categories = getRandom(
       defaultCategories.split("\n"),
-      parseInt(options.numCategories, 10),
+      parseInt(options.numCategories ?? 12, 10),
     );
 
-    const gameId = push(ref(db, `gameStates/${roomId}`)).key!;
-    set(ref(db, `gameStates/${roomId}/${gameId}`), {
+    const gameId = push(ref(db, `rooms/${roomId}/games`)).key!;
+    set(ref(db, `rooms/${roomId}/games/${gameId}/state`), {
       roomId,
       startedAt: serverTimestamp(),
       options: {
-        timeLimit: parseInt(options.timeLimit, 10),
+        timeLimitMs: parseInt(options.timeLimit, 10) * 1000,
         letter:
           options.letterOverride.substring(0, 1).toUpperCase() ??
           "ABCDEFGHIJKLMNOPRSTW".charAt(Math.floor(Math.random() * 20)),
       },
       categories,
+      status: { kind: "inProgress" },
     });
-    set(ref(db, `rooms/${roomId}/currentGameId`), gameId);
+    set(ref(db, `rooms/${roomId}/state/currentGameId`), gameId);
   };
 
   return (
@@ -184,7 +197,7 @@ function GameRoomNameEntry({
 
   const submit: FormEventHandler = (event) => {
     event.preventDefault();
-    set(ref(db, `roomUsers/${roomId}/${userId}/name`), name);
+    set(ref(db, `rooms/${roomId}/users/${userId}/name`), name);
   };
 
   return (
@@ -210,12 +223,12 @@ const useDbRoom = (roomId: string) => {
   const [users, setUsers] = useState<Record<string, DbRoomUser> | null>(null);
 
   useEffect(() => {
-    const unsubscribeRoom = onValue(ref(db, `rooms/${roomId}`), (snap) => {
-      setRoom(snap.val());
-    });
-    const unsubscribeUsers = onValue(ref(db, `roomUsers/${roomId}`), (snap) => {
-      setUsers(snap.val());
-    });
+    const unsubscribeRoom = onValue(ref(db, `rooms/${roomId}/state`), (snap) =>
+      setRoom(snap.val()),
+    );
+    const unsubscribeUsers = onValue(ref(db, `rooms/${roomId}/users`), (snap) =>
+      setUsers(snap.val()),
+    );
     return () => {
       unsubscribeRoom();
       unsubscribeUsers();
@@ -224,7 +237,7 @@ const useDbRoom = (roomId: string) => {
 
   // Initialize the room if it doesn't exist
   useEffect(() => {
-    const roomRef = ref(db, `rooms/${roomId}`);
+    const roomRef = ref(db, `rooms/${roomId}/state`);
     runTransaction(roomRef, (currentData) => {
       if (!currentData) {
         return {
@@ -249,7 +262,7 @@ const usePresence = (roomId: string | undefined, userId: string | null) => {
     if (!roomId || !userId) {
       return;
     }
-    const userRef = ref(db, `roomUsers/${roomId}/${userId}`);
+    const userRef = ref(db, `rooms/${roomId}/users/${userId}`);
     onValue(ref(db, ".info/connected"), async (snap) => {
       if (snap.val() === true) {
         await onDisconnect(userRef).update({ status: "disconnected" });

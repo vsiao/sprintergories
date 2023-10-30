@@ -1,39 +1,31 @@
 {
   "rules": {
-    "gameLogs": {
-      ".read": true,
-      "$gameId": {
-        "$logEntry": {
-          ".indexOn": "ts",
-          ".write": "!data.exists()"
-        }
-      }
-    },
-    "gameStates": {
-      ".read": true,
-      "$roomId": {
-        "$gameId": {
-          ".write": "!data.exists()"
-        }
-      }
-    },
     "rooms": {
       ".read": true,
       "$roomId": {
-        ".write": "auth !== null && !data.exists()",
-        "currentGameId": {
-          ".write": "auth !== null"
+        "state": {
+          ".write": "auth !== null && !data.exists()",
+          "currentGameId": { ".write": "auth !== null" },
+          "options": { ".write": "auth !== null" }
         },
-        "options": {
-          ".write": "auth !== null"
-        }
-      }
-    },
-    "roomUsers": {
-      ".read": true,
-      "$roomId": {
-        "$uid": {
-          ".write": "auth.uid === $uid"
+        "users": {
+          "$uid": { ".write": "auth.uid === $uid" }
+        },
+        "games": {
+          "$gameId": {
+            "state": {
+              ".write": "auth !== null && !data.exists()",
+              "status": { ".write": "auth !== null" }
+            },
+            "responses": {
+              "$uid": {
+                ".write": "auth.uid === $uid && now <= data.parent().parent().child('state/startedAt').val() + data.parent().parent().child('state/options/timeLimitMs').val()"
+              }
+            },
+            "votes": {
+              "$uid": { ".write": "auth.uid === $uid" }
+            }
+          }
         }
       }
     }

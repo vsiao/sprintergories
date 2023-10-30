@@ -1,0 +1,18 @@
+.Sprintegories-responseTable {
+  border-collapse: separate;
+  border-spacing: 0 20px;
+  width: 100%;
+}
+
+.Sprintegories-categoryLabel {
+  padding-right: 20px;
+  white-space: nowrap;
+}
+
+.Sprintegories-responseCell {
+  width: 99%;
+}
+
+.Sprintegories-responseInput {
+  width: 100%;
+}
