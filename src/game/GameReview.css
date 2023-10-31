@@ -1,0 +1,8 @@
+.GameReview-table {
+  border-collapse: separate;
+  border-spacing: 8px;
+}
+
+.GameReview-rejectedResponse {
+  text-decoration: line-through;
+}

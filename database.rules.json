@@ -23,7 +23,11 @@
               }
             },
             "votes": {
-              "$uid": { ".write": "auth.uid === $uid" }
+              "$index": {
+                "$responseUid": {
+                  "$uid": { ".write": "auth.uid === $uid" }
+                }
+              }
             }
           }
         }

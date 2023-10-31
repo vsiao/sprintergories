@@ -15,7 +15,8 @@ export type DbGameStatus =
   | { kind: "complete" }
   | { kind: "abandoned" };
 
-export interface DbGameUser {
-  responses: Record<string, string[]>;
-  votes: Record<string, ("upvote" | "downvote")[]>;
-}
+/** userId -> response[] */
+export type DbResponses = Record<string, string[]>;
+
+/** (responseUid -> userId -> "upvote" | "downvote")[] */
+export type DbVotes = Record<string, Record<string, "upvote" | "downvote">>[];

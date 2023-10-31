@@ -44,6 +44,7 @@ export default function GameRoom() {
               gameId={room.currentGameId}
               userId={userId}
               isHost={isHost}
+              users={users}
             />
           ) : (
             <GameOptionsForm

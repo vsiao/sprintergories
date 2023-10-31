@@ -1,29 +1,25 @@
+import { onValue, ref, set } from "firebase/database";
 import { useEffect, useState } from "react";
 import { DbGame } from "../firebase/schema/DbGame";
-import {
-  DatabaseReference,
-  onChildAdded,
-  onChildChanged,
-  onChildRemoved,
-  onValue,
-  ref,
-  set,
-} from "firebase/database";
+import { DbRoomUser } from "../firebase/schema/DbRoom";
 import { db } from "../store/store";
-import "./Sprintegories.css";
+import GameReview from "./GameReview";
 import ResponseForm from "./ResponseForm";
-import ReviewForm from "./ReviewForm";
+import VotingForm from "./VotingForm";
+import "./Sprintegories.css";
 
 export default function Sprintegories({
   roomId,
   gameId,
   userId,
   isHost,
+  users,
 }: {
   roomId: string;
   gameId: string;
   userId: string;
   isHost: boolean;
+  users: Record<string, DbRoomUser>;
 }) {
   const gamePath = `rooms/${roomId}/games/${gameId}`;
   const game = useDbGame(gamePath);
@@ -32,7 +28,7 @@ export default function Sprintegories({
     <>
       <h2 className="GameRoom-mainHeader">Letter: {game?.options.letter}</h2>
       {game && isHost && renderHostControls(game, gamePath, roomId)}
-      {game && renderContents(game, gamePath, userId)}
+      {game && renderContents(game, gamePath, userId, users)}
     </>
   );
 }
@@ -49,6 +45,15 @@ function renderHostControls(game: DbGame, gamePath: string, roomId: string) {
           }}
         >
           Abandon game
+        </button>
+      )}
+      {(status.kind === "complete" || status.kind === "abandoned") && (
+        <button
+          onClick={() => {
+            set(ref(db, `rooms/${roomId}/state/currentGameId`), null);
+          }}
+        >
+          Continue
         </button>
       )}
       {status.kind === "inProgress" && (
@@ -83,13 +88,18 @@ function renderHostControls(game: DbGame, gamePath: string, roomId: string) {
   );
 }
 
-function renderContents(game: DbGame, gamePath: string, userId: string) {
+function renderContents(
+  game: DbGame,
+  gamePath: string,
+  userId: string,
+  users: Record<string, DbRoomUser>,
+) {
   switch (game.status.kind) {
     case "inProgress":
       return <ResponseForm game={game} gamePath={gamePath} userId={userId} />;
     case "voting":
       return (
-        <ReviewForm
+        <VotingForm
           index={game.status.category}
           category={game.categories[game.status.category]}
           gamePath={gamePath}
@@ -98,7 +108,14 @@ function renderContents(game: DbGame, gamePath: string, userId: string) {
       );
     case "complete":
     case "abandoned":
-      return null;
+      return (
+        <GameReview
+          game={game}
+          gamePath={gamePath}
+          users={users}
+          wasAbandoned={game.status.kind === "abandoned"}
+        />
+      );
   }
 }
 
@@ -111,28 +128,4 @@ const useDbGame = (gamePath: string) => {
   }, [gamePath]);
 
   return game;
-};
-
-const useListenChildren = <T,>(ref: DatabaseReference) => {
-  const [children, setChildren] = useState<Record<string, T>>({});
-  useEffect(() => {
-    const unsubAdded = onChildAdded(ref, (snap) => {
-      setChildren((prev) => ({ ...prev, [snap.key!]: snap.val() }));
-    });
-    const unsubChanged = onChildChanged(ref, (snap) => {
-      setChildren((prev) => ({ ...prev, [snap.key!]: snap.val() }));
-    });
-    const unsubRemoved = onChildRemoved(ref, (snap) => {
-      setChildren((prev) => {
-        const { [snap.key!]: _, ...rest } = prev;
-        return rest;
-      });
-    });
-    return () => {
-      unsubAdded();
-      unsubChanged();
-      unsubRemoved();
-    };
-  });
-  return children;
 };
