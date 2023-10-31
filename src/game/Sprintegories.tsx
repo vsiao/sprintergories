@@ -100,6 +100,7 @@ function renderContents(
     case "voting":
       return (
         <VotingForm
+          key={game.status.category}
           index={game.status.category}
           category={game.categories[game.status.category]}
           gamePath={gamePath}

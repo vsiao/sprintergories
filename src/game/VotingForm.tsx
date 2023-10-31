@@ -19,6 +19,7 @@ export default function VotingForm({
   users: Record<string, DbRoomUser>;
 }) {
   const responses = useDbResponses(gamePath, index, userId);
+  const responseEntries = Object.entries(responses ?? {});
   return (
     <table className="Sprintegories-responseTable">
       <thead>
@@ -30,18 +31,26 @@ export default function VotingForm({
         </tr>
       </thead>
       <tbody>
-        {responses &&
-          Object.entries(responses).map(([uid, response]) => (
-            <ResponseRow
-              key={uid}
-              gamePath={gamePath}
-              userId={userId}
-              index={index}
-              responseUid={uid}
-              response={response}
-              users={users}
-            />
-          ))}
+        {responseEntries.length
+          ? responseEntries.map(([uid, response]) => (
+              <ResponseRow
+                key={uid}
+                gamePath={gamePath}
+                userId={userId}
+                index={index}
+                responseUid={uid}
+                response={response}
+                users={users}
+              />
+            ))
+          : responses && (
+              <tr>
+                <td></td>
+                <td></td>
+                <td>No responses</td>
+                <td></td>
+              </tr>
+            )}
       </tbody>
     </table>
   );
@@ -57,7 +66,10 @@ const useDbResponses = (gamePath: string, index: number, userId: string) => {
       const filteredResponses: Record<string, string> = {};
       const responsesByUid: DbResponses = snap.val() ?? {};
       for (const [uid, allResponses] of Object.entries(responsesByUid ?? {})) {
-        filteredResponses[uid] = allResponses[index];
+        const response = allResponses[index];
+        if (response?.trim()) {
+          filteredResponses[uid] = response;
+        }
       }
       setResponses(filteredResponses);
     });
