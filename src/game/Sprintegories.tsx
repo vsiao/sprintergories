@@ -104,6 +104,7 @@ function renderContents(
           category={game.categories[game.status.category]}
           gamePath={gamePath}
           userId={userId}
+          users={users}
         />
       );
     case "complete":

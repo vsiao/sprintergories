@@ -74,9 +74,6 @@
 .GameOptionsForm-input {
   flex: 1 1 auto;
 }
-.GameOptionsForm-input[disabled] {
-  border-bottom-color: #543864;
-}
 
 .GameOptionsForm-submit {
   margin-top: 16px;

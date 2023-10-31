@@ -144,7 +144,7 @@ function GameOptionsForm({
       options: {
         timeLimitMs: parseInt(options.timeLimit, 10) * 1000,
         letter:
-          options.letterOverride.substring(0, 1).toUpperCase() ??
+          options.letterOverride.substring(0, 1).toUpperCase() ||
           "ABCDEFGHIJKLMNOPRSTW".charAt(Math.floor(Math.random() * 20)),
       },
       categories,
