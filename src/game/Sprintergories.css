@@ -1,21 +1,21 @@
-.Sprintegories-responseTable {
+.Sprintergories-responseTable {
   border-collapse: separate;
   border-spacing: 0 20px;
   width: 100%;
 }
 
-.Sprintegories-categoryLabel {
+.Sprintergories-categoryLabel {
   padding-right: 20px;
   white-space: nowrap;
 }
 
-.Sprintegories-responseCell {
+.Sprintergories-responseCell {
   width: 99%;
 }
 
-.Sprintegories-responseInput {
+.Sprintergories-responseInput {
   width: 100%;
 }
-.Sprintegories-responseInput--rejected {
+.Sprintergories-responseInput--rejected {
   text-decoration: line-through;
 }

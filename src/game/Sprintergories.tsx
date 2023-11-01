@@ -6,9 +6,9 @@ import { db } from "../store/store";
 import GameReview from "./GameReview";
 import ResponseForm from "./ResponseForm";
 import VotingForm from "./VotingForm";
-import "./Sprintegories.css";
+import "./Sprintergories.css";
 
-export default function Sprintegories({
+export default function Sprintergories({
   roomId,
   gameId,
   userId,

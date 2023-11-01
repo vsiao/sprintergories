@@ -17,7 +17,7 @@ export default function ResponseForm({
       {game && (
         <GameTimer endTimeMs={game.startedAt + game.options.timeLimitMs} />
       )}
-      <table className="Sprintegories-responseTable">
+      <table className="Sprintergories-responseTable">
         <tbody>
           {game?.categories?.map((category, i) => (
             <CategoryField
@@ -46,13 +46,13 @@ function CategoryField({ category, path }: { category: string; path: string }) {
 
   return (
     <tr key={category}>
-      <td className="Sprintegories-categoryLabel">
+      <td className="Sprintergories-categoryLabel">
         <label htmlFor={category}>{category}</label>
       </td>
-      <td className="Sprintegories-responseCell">
+      <td className="Sprintergories-responseCell">
         <input
           id={category}
-          className="Sprintegories-responseInput"
+          className="Sprintergories-responseInput"
           type="text"
           value={value}
           onChange={(e) => {

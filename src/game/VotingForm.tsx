@@ -25,7 +25,7 @@ export default function VotingForm({
     ([, { isEmpty }]) => !isEmpty,
   );
   return (
-    <table className="Sprintegories-responseTable">
+    <table className="Sprintergories-responseTable">
       <thead>
         <tr>
           <th></th>
@@ -114,10 +114,10 @@ function ResponseRow({
       <td>
         <span style={{ margin: "0 8px" }}>{users[responseUid].name}</span>
       </td>
-      <td className="Sprintegories-responseCell">
+      <td className="Sprintergories-responseCell">
         <input
-          className={classNames("Sprintegories-responseInput", {
-            "Sprintegories-responseInput--rejected": isDuplicate || score < 0,
+          className={classNames("Sprintergories-responseInput", {
+            "Sprintergories-responseInput--rejected": isDuplicate || score < 0,
           })}
           disabled
           type="text"

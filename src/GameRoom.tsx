@@ -15,7 +15,7 @@ import { selectUserId } from "./store/authSlice";
 import { db } from "./store/store";
 import { DbRoomOptions, DbRoom, DbRoomUser } from "./firebase/schema/DbRoom";
 import { defaultCategories } from "./game/defaultCategories";
-import Sprintegories from "./game/Sprintegories";
+import Sprintergories from "./game/Sprintergories";
 import "./GameRoom.css";
 
 export default function GameRoom() {
@@ -39,7 +39,7 @@ export default function GameRoom() {
       <div className="GameRoom-main">
         {roomUser.name ? (
           room.currentGameId ? (
-            <Sprintegories
+            <Sprintergories
               roomId={roomId}
               gameId={room.currentGameId}
               userId={userId}
