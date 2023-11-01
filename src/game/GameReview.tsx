@@ -3,6 +3,7 @@ import { DbGame, DbResponses, DbVotes } from "../firebase/schema/DbGame";
 import { db } from "../store/store";
 import { useEffect, useState } from "react";
 import { DbRoomUser } from "../firebase/schema/DbRoom";
+import { processResponses } from "./responses";
 import "./GameReview.css";
 
 export default function GameReview({
@@ -16,7 +17,7 @@ export default function GameReview({
   users: Record<string, DbRoomUser>;
   wasAbandoned: boolean;
 }) {
-  const results = useDbResults(gamePath) ?? {};
+  const results = useDbResults(gamePath, game.categories) ?? {};
   const filteredUsers = Object.keys(results).map((uid) => users[uid]);
   if (!wasAbandoned) {
     filteredUsers.sort((u1, u2) => results[u2.id].score - results[u1.id].score);
@@ -71,7 +72,7 @@ type Results = Record<
     }[];
   }
 >;
-const useDbResults = (gamePath: string) => {
+const useDbResults = (gamePath: string, categories: string[]) => {
   const [results, setResults] = useState<Results | null>(null);
   useEffect(() => {
     Promise.all([
@@ -81,37 +82,44 @@ const useDbResults = (gamePath: string) => {
       const resultsByUid: Results = {};
       const allResponses: DbResponses = responsesSnap.val() ?? {};
       const votes: DbVotes = votesSnap.val() ?? [];
-      for (const [uid, userResponses] of Object.entries(allResponses)) {
-        if (!resultsByUid[uid]) {
-          const responses = userResponses.map((response, i) => ({
+      const processedResponses = categories.map((_category, i) =>
+        processResponses(allResponses, i),
+      );
+
+      for (const uid of Object.keys(allResponses)) {
+        const responses = processedResponses.map((responseByUid, i) => {
+          const score = Object.values(votes[i]?.[uid] ?? {}).reduce<number>(
+            (score, vote) => {
+              switch (vote) {
+                case "downvote":
+                  return score - 1;
+                case "upvote":
+                  return score + 1;
+                default:
+                  return score;
+              }
+            },
+            0,
+          );
+          const { response, isEmpty, isDuplicate } = responseByUid[uid];
+          return {
             response,
-            accepted:
-              !!response.trim() &&
-              Object.values(votes[i]?.[uid] ?? {}).reduce<number>(
-                (score, vote) => {
-                  switch (vote) {
-                    case "downvote":
-                      return score - 1;
-                    case "upvote":
-                      return score + 1;
-                    default:
-                      return score;
-                  }
-                },
-                0,
-              ) >= 0,
-          }));
-          resultsByUid[uid] = {
-            score: responses.reduce(
-              (score, { accepted }) => (accepted ? score + 1 : score),
-              0,
-            ),
-            responses,
+            isEmpty,
+            isDuplicate,
+            score,
+            accepted: !isEmpty && !isDuplicate && score >= 0,
           };
-        }
+        });
+        resultsByUid[uid] = {
+          score: responses.reduce(
+            (prev, { accepted }) => (accepted ? prev + 1 : prev),
+            0,
+          ),
+          responses,
+        };
         setResults(resultsByUid);
       }
     });
-  }, [gamePath]);
+  }, [gamePath, categories]);
   return results;
 };

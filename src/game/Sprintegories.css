@@ -16,3 +16,6 @@
 .Sprintegories-responseInput {
   width: 100%;
 }
+.Sprintegories-responseInput--rejected {
+  text-decoration: line-through;
+}

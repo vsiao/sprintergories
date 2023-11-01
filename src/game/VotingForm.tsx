@@ -1,8 +1,10 @@
+import classNames from "classnames";
 import { get, onValue, ref, set } from "firebase/database";
 import { useEffect, useState } from "react";
 import { db } from "../store/store";
 import { DbResponses } from "../firebase/schema/DbGame";
 import { DbRoomUser } from "../firebase/schema/DbRoom";
+import { ProcessedResponse, processResponses } from "./responses";
 import "./VotingForm.css";
 
 export default function VotingForm({
@@ -19,7 +21,9 @@ export default function VotingForm({
   users: Record<string, DbRoomUser>;
 }) {
   const responses = useDbResponses(gamePath, index, userId);
-  const responseEntries = Object.entries(responses ?? {});
+  const responseEntries = Object.entries(responses ?? {}).filter(
+    ([, { isEmpty }]) => !isEmpty,
+  );
   return (
     <table className="Sprintegories-responseTable">
       <thead>
@@ -32,7 +36,7 @@ export default function VotingForm({
       </thead>
       <tbody>
         {responseEntries.length
-          ? responseEntries.map(([uid, response]) => (
+          ? responseEntries.map(([uid, { response, isDuplicate }]) => (
               <ResponseRow
                 key={uid}
                 gamePath={gamePath}
@@ -40,6 +44,7 @@ export default function VotingForm({
                 index={index}
                 responseUid={uid}
                 response={response}
+                isDuplicate={isDuplicate}
                 users={users}
               />
             ))
@@ -57,24 +62,18 @@ export default function VotingForm({
 }
 
 const useDbResponses = (gamePath: string, index: number, userId: string) => {
-  const [responses, setResponses] = useState<Record<string, string> | null>(
-    null,
-  );
+  const [result, setResult] = useState<Record<
+    string,
+    ProcessedResponse
+  > | null>(null);
   useEffect(() => {
     const responsesRef = ref(db, `${gamePath}/responses`);
     get(responsesRef).then((snap) => {
-      const filteredResponses: Record<string, string> = {};
       const responsesByUid: DbResponses = snap.val() ?? {};
-      for (const [uid, allResponses] of Object.entries(responsesByUid ?? {})) {
-        const response = allResponses[index];
-        if (response?.trim()) {
-          filteredResponses[uid] = response;
-        }
-      }
-      setResponses(filteredResponses);
+      setResult(processResponses(responsesByUid, index));
     });
   }, [gamePath, index, userId]);
-  return responses;
+  return result;
 };
 
 function ResponseRow({
@@ -83,6 +82,7 @@ function ResponseRow({
   index,
   responseUid,
   response,
+  isDuplicate,
   users,
 }: {
   gamePath: string;
@@ -90,6 +90,7 @@ function ResponseRow({
   index: number;
   responseUid: string;
   response: string;
+  isDuplicate: boolean;
   users: Record<string, DbRoomUser>;
 }) {
   const votesPath = `${gamePath}/votes/${index}/${responseUid}`;
@@ -107,20 +108,24 @@ function ResponseRow({
   }, 0);
   return (
     <tr>
-      <td className={score < 0 ? "VotingForm-negativeScore" : ""}>{score}</td>
+      <td className={score < 0 ? "VotingForm-negativeScore" : ""}>
+        {isDuplicate ? null : score}
+      </td>
       <td>
         <span style={{ margin: "0 8px" }}>{users[responseUid].name}</span>
       </td>
       <td className="Sprintegories-responseCell">
         <input
-          className="Sprintegories-responseInput"
+          className={classNames("Sprintegories-responseInput", {
+            "Sprintegories-responseInput--rejected": isDuplicate || score < 0,
+          })}
           disabled
           type="text"
           value={response}
         />
       </td>
       <td>
-        {userId !== responseUid && (
+        {!isDuplicate && userId !== responseUid && (
           <>
             <button
               onClick={() => {
