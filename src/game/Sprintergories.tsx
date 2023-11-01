@@ -57,16 +57,7 @@ function renderHostControls(game: DbGame, gamePath: string, roomId: string) {
         </button>
       )}
       {status.kind === "inProgress" && (
-        <button
-          onClick={() => {
-            set(ref(db, `${gamePath}/state/status`), {
-              kind: "voting",
-              category: 0,
-            });
-          }}
-        >
-          End round
-        </button>
+        <button onClick={() => endRound(gamePath)}>End round</button>
       )}
       {status.kind === "voting" && (
         <button
@@ -96,7 +87,14 @@ function renderContents(
 ) {
   switch (game.status.kind) {
     case "inProgress":
-      return <ResponseForm game={game} gamePath={gamePath} userId={userId} />;
+      return (
+        <ResponseForm
+          game={game}
+          gamePath={gamePath}
+          userId={userId}
+          onTimerFinish={() => endRound(gamePath)}
+        />
+      );
     case "voting":
       return (
         <VotingForm
@@ -120,6 +118,13 @@ function renderContents(
       );
   }
 }
+
+const endRound = (gamePath: string) => {
+  set(ref(db, `${gamePath}/state/status`), {
+    kind: "voting",
+    category: 0,
+  });
+};
 
 const useDbGame = (gamePath: string) => {
   const [game, setGame] = useState<DbGame | null>(null);

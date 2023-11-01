@@ -7,15 +7,20 @@ export default function ResponseForm({
   game,
   gamePath,
   userId,
+  onTimerFinish,
 }: {
   game: DbGame;
   gamePath: string;
   userId: string;
+  onTimerFinish: () => void;
 }) {
   return (
     <>
       {game && (
-        <GameTimer endTimeMs={game.startedAt + game.options.timeLimitMs} />
+        <GameTimer
+          endTimeMs={game.startedAt + game.options.timeLimitMs}
+          onFinish={onTimerFinish}
+        />
       )}
       <table className="Sprintergories-responseTable">
         <tbody>
@@ -65,7 +70,13 @@ function CategoryField({ category, path }: { category: string; path: string }) {
   );
 }
 
-function GameTimer({ endTimeMs }: { endTimeMs: number }) {
+function GameTimer({
+  endTimeMs,
+  onFinish,
+}: {
+  endTimeMs: number;
+  onFinish: () => void;
+}) {
   const [serverTimeOffset, setServerTimeOffset] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(
     getSecondsLeft(endTimeMs, serverTimeOffset),
@@ -89,6 +100,8 @@ function GameTimer({ endTimeMs }: { endTimeMs: number }) {
         currentTickTime.current + 1000 - Date.now(),
       );
       return () => clearTimeout(timer);
+    } else {
+      onFinish();
     }
   });
 
