@@ -19,23 +19,12 @@ export default function GameReview({
   users: Record<string, DbRoomUser>;
   wasAbandoned: boolean;
 }) {
-  let results = useDbResults(gamePath, game.categories) ?? {};
+  const results = useDbResults(gamePath, game.categories) ?? {};
   const filteredUsers = Object.keys(results).map((uid) => users[uid]);
   if (!wasAbandoned) {
     filteredUsers
       .sort((u1, u2) => results[u2.id].score - results[u1.id].score)
   }
-
-  results = Object.fromEntries(
-    Object.entries(results).map(([uid, { score, responses }]) => [
-      uid,
-      {
-        score,
-        displayedScore: `${score} ${score === results[filteredUsers[0].id].score ? "🏆" : ""}`,
-        responses,
-      },
-    ]),
-  )
 
   return (
     <table className="GameReview-table">
@@ -72,7 +61,7 @@ export default function GameReview({
           <tr>
             <th className="GameReview-cell GameReview-score">Final Score</th>
             {filteredUsers.map((u) => (
-              <td className="GameReview-cell GameReview-score" key={u.id}>{results[u.id].displayedScore}</td>
+              <td className="GameReview-cell GameReview-score" key={u.id}>{results[u.id].score === results[filteredUsers[0]?.id].score ? `${results[u.id].score} 🏆` : `${results[u.id].score}`}</td>
             ))}
           </tr>
         )}
@@ -85,7 +74,6 @@ type Results = Record<
   string,
   {
     score: number;
-    displayedScore?: string;
     responses: {
       response: string;
       accepted: boolean;
