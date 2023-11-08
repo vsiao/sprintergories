@@ -1,5 +1,5 @@
-import { onValue, ref, set } from "firebase/database";
-import { useEffect, useState } from "react";
+import { ref, set } from "firebase/database";
+import { useDbGame } from "../firebase/hooks";
 import { DbGame } from "../firebase/schema/DbGame";
 import { DbRoomUser } from "../firebase/schema/DbRoom";
 import { db } from "../store/store";
@@ -124,15 +124,4 @@ const endRound = (gamePath: string) => {
     kind: "voting",
     category: 0,
   });
-};
-
-const useDbGame = (gamePath: string) => {
-  const [game, setGame] = useState<DbGame | null>(null);
-
-  useEffect(() => {
-    const gameStateRef = ref(db, `${gamePath}/state`);
-    return onValue(gameStateRef, (snap) => setGame(snap.val()));
-  }, [gamePath]);
-
-  return game;
 };

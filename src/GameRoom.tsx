@@ -1,29 +1,24 @@
-import {
-  onDisconnect,
-  onValue,
-  push,
-  ref,
-  runTransaction,
-  serverTimestamp,
-  set,
-  update,
-} from "firebase/database";
-import { FormEventHandler, useEffect, useState } from "react";
+import { push, ref, serverTimestamp, set } from "firebase/database";
+import { FormEventHandler, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppSelector } from "./store/hooks";
 import { selectUserId } from "./store/authSlice";
 import { db } from "./store/store";
-import { DbRoomOptions, DbRoom, DbRoomUser } from "./firebase/schema/DbRoom";
+import { useDbRoom, usePresence } from "./firebase/hooks";
+import { DbRoomOptions } from "./firebase/schema/DbRoom";
 import { defaultCategories } from "./game/defaultCategories";
 import Sprintergories from "./game/Sprintergories";
 import "./GameRoom.css";
 
 export default function GameRoom() {
   const { roomId } = useParams() as { roomId: string };
-  const userId = useAppSelector(selectUserId);
+  let userId = useAppSelector(selectUserId);
   const [room, users] = useDbRoom(roomId);
   usePresence(roomId, userId);
 
+  if (window.location.search.indexOf("localdev") >= 0) {
+    userId = "DEVUSER";
+  }
   if (!userId || !room || !users?.[userId]) {
     return null;
   }
@@ -218,61 +213,3 @@ function GameRoomNameEntry({
     </>
   );
 }
-
-const useDbRoom = (roomId: string) => {
-  const [room, setRoom] = useState<DbRoom | null>(null);
-  const [users, setUsers] = useState<Record<string, DbRoomUser> | null>(null);
-
-  useEffect(() => {
-    const unsubscribeRoom = onValue(ref(db, `rooms/${roomId}/state`), (snap) =>
-      setRoom(snap.val()),
-    );
-    const unsubscribeUsers = onValue(ref(db, `rooms/${roomId}/users`), (snap) =>
-      setUsers(snap.val()),
-    );
-    return () => {
-      unsubscribeRoom();
-      unsubscribeUsers();
-    };
-  }, [roomId]);
-
-  // Initialize the room if it doesn't exist
-  useEffect(() => {
-    const roomRef = ref(db, `rooms/${roomId}/state`);
-    runTransaction(roomRef, (currentData) => {
-      if (!currentData) {
-        return {
-          id: roomId,
-          createdAt: serverTimestamp(),
-          status: "lobby",
-          options: {
-            timeLimit: 30,
-            numCategories: 3,
-            letterOverride: "A",
-          },
-        };
-      }
-    });
-  }, [roomId]);
-
-  return [room, users] as const;
-};
-
-const usePresence = (roomId: string | undefined, userId: string | null) => {
-  useEffect(() => {
-    if (!roomId || !userId) {
-      return;
-    }
-    const userRef = ref(db, `rooms/${roomId}/users/${userId}`);
-    onValue(ref(db, ".info/connected"), async (snap) => {
-      if (snap.val() === true) {
-        await onDisconnect(userRef).update({ status: "disconnected" });
-        update(userRef, {
-          id: userId,
-          status: "connected",
-          connectedAt: serverTimestamp(),
-        });
-      }
-    });
-  }, [roomId, userId]);
-};

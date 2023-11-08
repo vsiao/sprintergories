@@ -1,0 +1,10 @@
+.CountdownTimer {
+  align-items: center;
+  border-radius: 50%;
+  border: 3px solid white;
+  display: inline-flex;
+  font-size: 2em;
+  justify-content: center;
+  height: 80px;
+  width: 80px;
+}

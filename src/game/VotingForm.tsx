@@ -1,10 +1,8 @@
 import classNames from "classnames";
-import { get, onValue, ref, set } from "firebase/database";
-import { useEffect, useState } from "react";
+import { ref, set } from "firebase/database";
 import { db } from "../store/store";
-import { DbResponses } from "../firebase/schema/DbGame";
+import { useDbResponses, useDbVotes } from "../firebase/hooks";
 import { DbRoomUser } from "../firebase/schema/DbRoom";
-import { ProcessedResponse, processResponses } from "./responses";
 import "./VotingForm.css";
 
 export default function VotingForm({
@@ -60,21 +58,6 @@ export default function VotingForm({
     </table>
   );
 }
-
-const useDbResponses = (gamePath: string, index: number, userId: string) => {
-  const [result, setResult] = useState<Record<
-    string,
-    ProcessedResponse
-  > | null>(null);
-  useEffect(() => {
-    const responsesRef = ref(db, `${gamePath}/responses`);
-    get(responsesRef).then((snap) => {
-      const responsesByUid: DbResponses = snap.val() ?? {};
-      setResult(processResponses(responsesByUid, index));
-    });
-  }, [gamePath, index, userId]);
-  return result;
-};
 
 function ResponseRow({
   gamePath,
@@ -155,16 +138,3 @@ function ResponseRow({
     </tr>
   );
 }
-
-const useDbVotes = (votesPath: string) => {
-  const [votes, setVotes] = useState<Record<
-    string,
-    "upvote" | "downvote"
-  > | null>(null);
-
-  useEffect(() => {
-    return onValue(ref(db, votesPath), (snap) => setVotes(snap.val()));
-  }, [votesPath]);
-
-  return votes;
-};
