@@ -22,8 +22,7 @@ export default function GameReview({
   const results = useDbResults(gamePath, game.categories) ?? {};
   const filteredUsers = Object.keys(results).map((uid) => users[uid]);
   if (!wasAbandoned) {
-    filteredUsers
-      .sort((u1, u2) => results[u2.id].score - results[u1.id].score)
+    filteredUsers.sort((u1, u2) => results[u2.id].score - results[u1.id].score)
   }
 
   return (
@@ -61,7 +60,9 @@ export default function GameReview({
           <tr>
             <th className="GameReview-cell GameReview-score">Final Score</th>
             {filteredUsers.map((u) => (
-              <td className="GameReview-cell GameReview-score" key={u.id}>{results[u.id].score === results[filteredUsers[0]?.id].score ? `${results[u.id].score} 🏆` : `${results[u.id].score}`}</td>
+              <td className="GameReview-cell GameReview-score" key={u.id}>
+                {results[u.id].score === results[filteredUsers[0]?.id].score ? `${results[u.id].score} 🏆` : `${results[u.id].score}`}
+              </td>
             ))}
           </tr>
         )}
