@@ -5,6 +5,9 @@
   flex-direction: column;
   font-size: 20px;
   height: 100vh;
+
+  --white-20: #ffffff33;
+  --accent-text: #ffbd69;
 }
 
 .App-header {
@@ -19,7 +22,7 @@
 }
 
 .App-homeLink {
-  color: #ffbd69;
+  color: var(--accent-text);
   font-weight: 600;
   text-decoration: none;
 }

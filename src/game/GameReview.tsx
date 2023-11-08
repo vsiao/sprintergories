@@ -6,6 +6,8 @@ import { DbRoomUser } from "../firebase/schema/DbRoom";
 import { processResponses } from "./responses";
 import "./GameReview.css";
 
+import cx from "classnames"
+
 export default function GameReview({
   game,
   gamePath,
@@ -17,39 +19,48 @@ export default function GameReview({
   users: Record<string, DbRoomUser>;
   wasAbandoned: boolean;
 }) {
-  const results = useDbResults(gamePath, game.categories) ?? {};
+  let results = useDbResults(gamePath, game.categories) ?? {};
   const filteredUsers = Object.keys(results).map((uid) => users[uid]);
   if (!wasAbandoned) {
-    filteredUsers.sort((u1, u2) => results[u2.id].score - results[u1.id].score);
+    filteredUsers
+      .sort((u1, u2) => results[u2.id].score - results[u1.id].score)
   }
+
+  results = Object.fromEntries(
+    Object.entries(results).map(([uid, { score, responses }]) => [
+      uid,
+      {
+        score,
+        displayedScore: `${score} ${score === results[filteredUsers[0].id].score ? "🏆" : ""}`,
+        responses,
+      },
+    ]),
+  )
+
   return (
     <table className="GameReview-table">
       <thead>
         <tr>
-          <th></th>
+          <th className="GameReview-cell GameReview-name" />
           {filteredUsers.map((u) => (
-            <th key={u.id}>{u.name}</th>
+            <th key={u.id} className="GameReview-cell GameReview-name">{u.name}</th>
           ))}
         </tr>
       </thead>
       <tbody>
-        {!wasAbandoned && (
-          <tr>
-            <th>Score</th>
-            {filteredUsers.map((u) => (
-              <td key={u.id}>{results[u.id].score}</td>
-            ))}
-          </tr>
-        )}
         {game.categories.map((category, i) => (
           <tr key={category}>
-            <th>{category}</th>
+            <th className="GameReview-cell">{category}</th>
             {filteredUsers.map((u) => {
               const { response, accepted } = results[u.id].responses[i] ?? {};
               return (
                 <td
                   key={u.id}
-                  className={!accepted ? "GameReview-rejectedResponse" : ""}
+                  className={cx(
+                    "GameReview-cell", {
+                    "GameReview-rejectedResponse": !accepted
+                  })
+                  }
                 >
                   {response}
                 </td>
@@ -57,6 +68,14 @@ export default function GameReview({
             })}
           </tr>
         ))}
+        {!wasAbandoned && (
+          <tr>
+            <th className="GameReview-cell GameReview-score">Final Score</th>
+            {filteredUsers.map((u) => (
+              <td className="GameReview-cell GameReview-score" key={u.id}>{results[u.id].displayedScore}</td>
+            ))}
+          </tr>
+        )}
       </tbody>
     </table>
   );
@@ -66,6 +85,7 @@ type Results = Record<
   string,
   {
     score: number;
+    displayedScore?: string;
     responses: {
       response: string;
       accepted: boolean;
