@@ -1,8 +1,9 @@
 import { DbResponses } from "../firebase/schema/DbGame";
+import { singularize } from "../libs/grammar";
 
 /** Convert a raw response to a comparable string to check for duplicates */
 const normalizeResponse = (response: string | undefined) => {
-  return response?.trim().toLowerCase() ?? "";
+  return response?.trim().toLowerCase().replace(/[^a-z0-9 ]/g, '').split(" ").map((word) => singularize(word)).join(" ") ?? "";
 };
 
 export interface ProcessedResponse {
