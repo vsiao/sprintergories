@@ -1,8 +1,26 @@
 .GameReview-table {
-  border-collapse: separate;
-  border-spacing: 8px;
+  border-collapse: collapse;
+}
+
+.GameReview-cell {
+  padding: 10px 15px 10px 5px;
+  text-align: left;
+  border-bottom: 1px solid var(--white-20);
+}
+
+.GameReview-name {
+  text-align: left;
+  border-bottom: 1px solid var(--accent-text);
+}
+
+.GameReview-score {
+  color: var(--accent-text);
+  text-align: left;
+  border-bottom: none;
+  font-weight: bold;
 }
 
 .GameReview-rejectedResponse {
   text-decoration: line-through;
+  opacity: 0.5;
 }
